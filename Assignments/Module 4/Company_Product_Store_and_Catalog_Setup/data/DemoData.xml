@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<entity-engine-xml>
+    <!-- Activity 1: Company Information -->
+    <Party partyId="COMPANY" partyTypeId="PARTY_GROUP"/>
+    <PartyGroup partyId="COMPANY" groupName="Default Company" logoImageUrl="/resources/uploads/images/company_logo.png"/>
+
+    <!-- Activity 2: Company Roles -->
+    <PartyRole partyId="COMPANY" roleTypeId="BILL_FROM_VENDOR"/>
+    <PartyRole partyId="COMPANY" roleTypeId="SHIP_FROM_VENDOR"/>
+    <PartyRole partyId="COMPANY" roleTypeId="BILL_TO_CUSTOMER"/>
+    <PartyRole partyId="COMPANY" roleTypeId="INTERNAL_ORGANIZATIO"/>
+    <PartyRole partyId="COMPANY" roleTypeId="SUPPLIER_AGENT"/>
+    <PartyRole partyId="COMPANY" roleTypeId="SUPPLIER"/>
+    <PartyRole partyId="COMPANY" roleTypeId="VENDOR"/>
+
+    <!-- Activity 3: Product Store Group -->
+    <ProductStoreGroup productStoreGroupId="STORE_GROUP" productStoreGroupName="Company Store Group"
+                       description="Company Store Group"/>
+
+    <!-- Activity 4: Product Store -->
+    <ProductStore productStoreId="STORE" primaryStoreGroupId="STORE_GROUP"
+                  storeName="Demo Store" payToPartyId="COMPANY" reserveInventory="N"
+                  defaultLocaleString="en_US" defaultCurrencyUomId="USD"
+                  defaultSalesChannelEnumId="WEB_SALES_CHANNEL" autoApproveInvoice="Y"
+                  autoApproveOrder="Y"/>
+</entity-engine-xml>
