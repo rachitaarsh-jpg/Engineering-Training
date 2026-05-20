@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://ofbiz.apache.org/Widget-Form" xsi:schemaLocation="http://ofbiz.apache.org/Widget-Form http://ofbiz.apache.org/dtds/widget-form.xsd">
+    <form name="ListPeople" type="list" list-name="listIt" paginate-target="main"
+        odd-row-style="alternate-row" default-table-style="basic-table hover-bar">
+        <actions>
+            <entity-condition entity-name="RmPerson"/>
+        </actions>
+        <!-- This automatically generates fields based on the RmPerson entity definition -->
+        <auto-fields-entity entity-name="RmPerson" default-field-type="display"/>
+        <field name="partyId" title="ID">
+            <hyperlink target="viewprofile" description="${partyId}">
+                <parameter param-name="partyId"/>
+            </hyperlink>
+        </field>
+    </form>
+
+    <form name="AddPerson" type="single" target="createPerson" title="Add a New Person">
+        <auto-fields-entity entity-name="RmPerson" default-field-type="edit"/>
+        <field name="partyId" title="Party ID"><text/></field>
+        <field name="submitButton" title="Create" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+
+    <form name="UpdatePerson" type="single" target="updateRmPerson" title="Update Person Information" default-map-name="person">
+        <auto-fields-entity entity-name="RmPerson" default-field-type="edit"/>
+        <field name="partyId"><hidden/></field>
+        <field name="submitButton" title="Update" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+
+    <form name="AddRmPartyRole" type="single" target="createRmPartyRole" title="Assign Role">
+        <field name="partyId"><hidden/></field>
+        <field name="roleTypeId" title="Role Type ID">
+            <drop-down allow-empty="false">
+                <option key="CUSTOMER" description="Customer"/>
+                <option key="SOFTWARE_ENGINEER" description="Software Engineer"/>
+                <option key="MANAGER" description="Manager"/>
+            </drop-down>
+        </field>
+        <field name="submitButton" title="Assign" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+
+    <form name="ListRmPartyRoles" type="list" list-name="partyRoles" title="Roles">
+        <field name="partyId"><hidden/></field>
+        <field name="roleTypeId" title="Role Type ID"><display/></field>
+        <field name="deleteLink" title=" " widget-style="buttontext">
+            <hyperlink target="deleteRmPartyRole" description="Delete">
+                <parameter param-name="partyId"/>
+                <parameter param-name="roleTypeId"/>
+            </hyperlink>
+        </field>
+    </form>
+
+    <form name="AddRmContactMechEmail" type="single" target="createRmContactMechEmail" title="Add Email">
+        <field name="partyId"><hidden/></field>
+        <field name="contactMechTypeId"><hidden value="EMAIL_ADDRESS"/></field>
+        <field name="infoString" title="Email Address"><text/></field>
+        <field name="submitButton" title="Add" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+
+    <form name="AddRmContactMechPhone" type="single" target="createRmContactMechPhone" title="Add Phone">
+        <field name="partyId"><hidden/></field>
+        <field name="contactMechTypeId" title="Phone Type">
+            <drop-down allow-empty="false">
+                <option key="BILLING_LOCATION" description="Billing Phone"/>
+                <option key="SHIPPING_LOCATION" description="Shipping Phone"/>
+            </drop-down>
+        </field>
+        <field name="infoString" title="Phone Number"><text/></field>
+        <field name="submitButton" title="Add" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+
+    <form name="AddRmPostalAddress" type="single" target="createRmPostalAddress" title="Add Address">
+        <field name="partyId"><hidden/></field>
+        <field name="address1"><text/></field>
+        <field name="city"><text/></field>
+        <field name="postalCode"><text/></field>
+        <field name="submitButton" title="Add" widget-style="smallSubmit"><submit button-type="button"/></field>
+    </form>
+
+    <form name="ListRmContactMechs" type="list" list-name="contactMechs" title="Contact Information">
+        <field name="contactMechTypeId" title="Type"><display/></field>
+        <field name="infoString" title="Information"><display/></field>
+    </form>
+</forms>

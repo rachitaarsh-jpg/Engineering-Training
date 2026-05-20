@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<entity-engine-xml>
+    <!-- =================================================== -->
+    <!-- Party Data -->
+    <!-- =================================================== -->
+
+    <!-- College Organization -->
+    <RmParty partyId="HOTWAX1" partyTypeId="ORGANIZATION"/>
+    <RmOrganization partyId="HOTWAX1" organizationName="HOTWAX_COMMERCE"/>
+    <RmPartyRole partyId="HOTWAX1" roleTypeId="INTERNAL_ORGANIZATIO"/>
+
+    <!-- Employee 1 -->
+    <RmParty partyId="EMPLOYEE_1" partyTypeId="PERSON"/>
+    <RmPerson partyId="EMPLOYEE_1" firstName="Ram" lastName="Chandra" birthDate="2002-04-02"/>
+    <RmPartyRole partyId="EMPLOYEE_1" roleTypeId="SOFTWARE_ENGINEER"/>
+    <!-- Manager 1 -->
+    <RmParty partyId="EMPLOYEE_MGR_1" partyTypeId="PERSON"/>
+    <RmPerson partyId="EMPLOYEE_MGR_1" firstName="Sita" lastName="Maithil" birthDate="1985-05-15"/>
+    <RmPartyRole partyId="EMPLOYEE_MGR_1" roleTypeId="MANAGER"/>
+
+    <!-- =================================================== -->
+    <!-- Contact Mechanism Data -->
+    <!-- =================================================== -->
+    <!-- Employee Email -->
+    <RmContactMech contactMechId="CM_EMAIL_1" contactMechTypeId="EMAIL_ADDRESS" infoString="ram.chandra@hotwax.co"/>
+    <RmPartyContactMech partyId="EMPLOYEE_1" contactMechId="CM_EMAIL_1" fromDate="2026-04-01 00:00:00.0"/>
+    <!-- Manager Address -->
+    <RmContactMech contactMechId="CM_ADDR_1" contactMechTypeId="POSTAL_ADDRESS"/>
+    <RmPostalAddress contactMechId="CM_ADDR_1" address1="VijayNagar,78" city="Indore" postalCode="452001"/>
+    <RmPartyContactMech partyId="EMPLOYEE_MGR_1" contactMechId="CM_ADDR_1" fromDate="2020-08-01 00:00:00.0"/>
+
+</entity-engine-xml>
