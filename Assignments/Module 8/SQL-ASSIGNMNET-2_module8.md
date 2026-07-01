@@ -77,84 +77,37 @@ WHERE oh.status_id = 'ORDER_COMPLETED'
 
 ```sql
 SELECT
-    sales.product_id,
-    sales.internal_name,
-    sales.city,
-    sales.state_province_geo_id,
-    sales.quantity,
-    sales.revenue
-FROM (
-    SELECT
-        oi.product_id,
-        p.internal_name,
-        pa.city,
-        pa.state_province_geo_id,
-        SUM(oi.quantity) AS quantity,
-        SUM(oi.quantity * oi.unit_price) AS revenue
-    FROM order_header oh
+    oi.product_id,
+    p.internal_name,
+    pa.state_province_geo_id,
+    SUM(oi.quantity)                    AS total_quantity_sold,
+    SUM(oi.quantity * oi.unit_price)    AS revenue
+FROM order_header oh
 
-    LEFT JOIN order_item oi
-        ON oh.order_id = oi.order_id
+JOIN order_item oi
+    ON oh.order_id = oi.order_id
 
-    LEFT JOIN product p
-        ON p.product_id = oi.product_id
+JOIN product p
+    ON p.product_id = oi.product_id
 
-    LEFT JOIN order_role orr
-        ON oh.order_id = orr.order_id
-       AND orr.role_type_id = 'SHIP_TO_CUSTOMER'
+LEFT JOIN order_contact_mech ocm
+    ON oh.order_id = ocm.order_id
+   AND ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
 
-    LEFT JOIN order_contact_mech ocm
-        ON oh.order_id = ocm.order_id
-       AND ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
+JOIN postal_address pa
+    ON pa.contact_mech_id = ocm.contact_mech_id
+   AND pa.state_province_geo_id = 'NY'
 
-    LEFT JOIN postal_address pa
-        ON pa.contact_mech_id = ocm.contact_mech_id
+WHERE oh.status_id = 'ORDER_COMPLETED'
 
-    WHERE pa.state_province_geo_id = 'NY'
+GROUP BY
+    oi.product_id,
+    p.internal_name,
+    pa.state_province_geo_id
 
-    GROUP BY
-        oi.product_id,
-        p.internal_name,
-        pa.city,
-        pa.state_province_geo_id
-) sales
+ORDER BY total_quantity_sold DESC
 
-JOIN (
-    SELECT
-        city,
-        MAX(quantity) AS max_qty
-    FROM (
-        SELECT
-            pa.city,
-            oi.product_id,
-            SUM(oi.quantity) AS quantity
-        FROM order_header oh
-
-        LEFT JOIN order_item oi
-            ON oh.order_id = oi.order_id
-
-        LEFT JOIN order_role orr
-            ON oh.order_id = orr.order_id
-           AND orr.role_type_id = 'SHIP_TO_CUSTOMER'
-
-        LEFT JOIN order_contact_mech ocm
-            ON oh.order_id = ocm.order_id
-           AND ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
-
-        LEFT JOIN postal_address pa
-            ON pa.contact_mech_id = ocm.contact_mech_id
-
-        WHERE pa.state_province_geo_id = 'NY'
-
-        GROUP BY
-            oi.product_id,
-            pa.city
-    ) t
-
-    GROUP BY city
-) max_sales
-ON sales.city = max_sales.city
-AND sales.quantity = max_sales.max_qty;
+LIMIT 1;
 ```
 
 ---
@@ -243,7 +196,7 @@ SELECT DISTINCT
     oh.order_id
 FROM order_item oi
 
-INNER JOIN order_header oh
+ JOIN order_header oh
     ON oh.order_id = oi.order_id
 
 LEFT JOIN order_item_ship_group oisg
@@ -281,9 +234,9 @@ FROM inventory_item;
 SELECT
     os1.order_id,
     os2.order_item_seq_id,
-    os2.status_id,
-    os2.status_user_login,
-    os2.status_datetime
+    os2.status_id AS current_status_id,,
+    os2.status_user_login AS status_change_datetime,
+    os2.status_datetime AS changed_by
 FROM order_status os1
 
 JOIN order_status os2
@@ -300,24 +253,16 @@ WHERE os1.status_id = 'ITEM_APPROVED'
 
 ```sql
 SELECT
-    SUM(oh.grand_total - IFNULL(ad.adjustments, 0)) AS total_revenue,
-    oh.sales_channel_enum_id,
-    COUNT(oh.order_id) AS total_orders,
-    MIN(oh.entry_date) AS start_date,
-    MAX(oh.entry_date) AS end_date
+    oh.sales_channel_enum_id            AS sales_channel,
+    COUNT(oh.order_id)                  AS total_orders,
+    SUM(oh.grand_total)                 AS total_revenue,
+    MIN(oh.order_date)                  AS start_date,
+    MAX(oh.order_date)                  AS end_date
 FROM order_header oh
-
-LEFT JOIN (
-    SELECT
-        order_id,
-        SUM(amount) AS adjustments
-    FROM order_adjustment
-
-    GROUP BY order_id
-) ad
-    ON ad.order_id = oh.order_id
 
 WHERE oh.status_id = 'ORDER_COMPLETED'
 
-GROUP BY oh.sales_channel_enum_id;
+GROUP BY oh.sales_channel_enum_id
+
+ORDER BY total_orders DESC;
 ```

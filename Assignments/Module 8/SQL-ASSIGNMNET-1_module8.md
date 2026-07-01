@@ -14,12 +14,14 @@ FROM party p
 
 JOIN party_role pr
     ON p.party_id = pr.party_id
+   AND pr.role_type_id = 'CUSTOMER'
 
 JOIN person pp
     ON pp.party_id = p.party_id
 
 LEFT JOIN party_contact_mech pcm_email
     ON p.party_id = pcm_email.party_id
+   AND pcm_email.thru_date IS NULL
 
 LEFT JOIN contact_mech cm_email
     ON pcm_email.contact_mech_id = cm_email.contact_mech_id
@@ -27,12 +29,12 @@ LEFT JOIN contact_mech cm_email
 
 LEFT JOIN party_contact_mech pcm_phone
     ON p.party_id = pcm_phone.party_id
+   AND pcm_phone.thru_date IS NULL
 
 LEFT JOIN telecom_number tn
     ON pcm_phone.contact_mech_id = tn.contact_mech_id
 
-WHERE pr.role_type_id = 'CUSTOMER'
-  AND p.created_stamp >= '2025-06-01'
+WHERE p.created_stamp >= '2026-06-01'
   AND p.created_stamp < '2026-07-01';
 ```
 
@@ -42,14 +44,18 @@ WHERE pr.role_type_id = 'CUSTOMER'
 
 ```sql
 SELECT
-    product_id,
-    product_type_id,
-    internal_name
-FROM product
-WHERE product_type_id = 'FINISHED_GOOD'
+    p.product_id,
+    p.product_type_id,
+    p.internal_name
+FROM product p
+
+JOIN product_type pt
+    ON p.product_type_id = pt.product_type_id
+
+WHERE pt.is_physical = 'Y'
   AND (
-        sales_discontinuation_date IS NULL
-        OR sales_discontinuation_date > CURRENT_TIMESTAMP
+        p.sales_discontinuation_date IS NULL
+        OR p.sales_discontinuation_date > CURRENT_TIMESTAMP
       );
 ```
 
@@ -69,7 +75,7 @@ LEFT JOIN good_identification gi
        ON p.product_id = gi.product_id
       AND gi.good_identification_type_id = 'ERP_ID'
 
-WHERE gi.id_value IS NULL;
+WHERE gi.id_value IS NULL OR gi.id_value = '';
 ```
 
 ---
@@ -90,7 +96,7 @@ LEFT JOIN good_identification gi_erp
 
 LEFT JOIN good_identification gi_hs
     ON p.product_id = gi_hs.product_id
-   AND gi_hs.good_identification_type_id = 'HS_CODE'
+   AND gi_hs.good_identification_type_id = 'HOTWAX_ID'
 
 LEFT JOIN good_identification gi_shop
     ON p.product_id = gi_shop.product_id
@@ -123,7 +129,8 @@ JOIN product p
     ON oi.product_id = p.product_id
 
 LEFT JOIN order_status os
-    ON oh.order_id = os.order_id
+    ON oh.order_id = os.order_id AND 
+    os.status_id = 'ORDER_COMPLETED'
 
 LEFT JOIN order_item_ship_group oisg
     ON oh.order_id = oisg.order_id
@@ -142,17 +149,19 @@ WHERE oh.status_id = 'ORDER_COMPLETED'
 
 ```sql
 SELECT
-    opp.payment_method_type_id,
-    opp.order_id,
-    opp.max_amount,
-    oh.external_id
-FROM order_payment_preference opp
+    oh.order_id,
+    oh.grand_total AS total_amount,
+    opp.payment_method_type_id AS payment_method,
+    oh.external_id AS shopify_order_id
+FROM order_header oh
 
-JOIN order_header oh
+JOIN order_payment_preference opp
     ON oh.order_id = opp.order_id
 
 WHERE oh.order_type_id = 'SALES_ORDER'
-ORDER BY opp.order_id;
+  AND oh.order_date >= DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)
+
+ORDER BY oh.order_date DESC;
 ```
 
 ---
@@ -195,10 +204,11 @@ WHERE opp.status_id IN (
 ```sql
 SELECT
     EXTRACT(HOUR FROM status_datetime) AS hour,
-    COUNT(*)
+    COUNT(*) AS total_orders
 FROM order_status
 
 WHERE status_id = 'ORDER_COMPLETED'
+AND DATE(status_datetime) = CURRENT_DATE
 
 GROUP BY EXTRACT(HOUR FROM status_datetime)
 
@@ -218,13 +228,10 @@ FROM order_header oh
 JOIN order_item_ship_group oisg
     ON oh.order_id = oisg.order_id
 
-JOIN shipment s
-    ON s.primary_order_id = oh.order_id
-
 WHERE oisg.shipment_method_type_id = 'STOREPICKUP'
-  AND s.status_id = 'SHIPMENT_SHIPPED'
-  AND s.estimated_ship_date >= '2025-01-01'
-  AND s.estimated_ship_date < '2026-01-01';
+  AND oh.status_id = 'ORDER_COMPLETED'
+  AND oh.order_date >= DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 YEAR), '%Y-01-01')
+  AND oh.order_date < DATE_FORMAT(CURRENT_DATE, '%Y-01-01');
 ```
 
 ---
@@ -234,10 +241,10 @@ WHERE oisg.shipment_method_type_id = 'STOREPICKUP'
 ```sql
 SELECT
     COUNT(order_id) AS cancelled_orders_count,
-    change_reason
+    change_reason AS cancellation_reason
 FROM order_status
 
-WHERE status_id = 'ITEM_CANCELLED'
+WHERE status_id = 'ORDER_CANCELLED'
   AND status_datetime BETWEEN '2026-05-01' AND '2026-06-01'
 
 GROUP BY change_reason;
@@ -250,8 +257,12 @@ GROUP BY change_reason;
 ```sql
 SELECT
     product_id,
-    SUM(minimum_stock) AS total_minimum_stock
+    facility_id,
+    minimum_stock AS threshold
 FROM product_facility
 
-GROUP BY product_id;
+WHERE minimum_stock IS NOT NULL
+  AND minimum_stock > 0
+
+ORDER BY product_id;
 ```
