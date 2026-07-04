@@ -6,31 +6,30 @@
 Merchants need to track only physical items (requiring shipping and fulfillment) for logistics and shipping-cost analysis.
 
 ```sql
-SELECT oh.order\_id,  
-       oi.order\_item\_seq\_id,  
-       p.product\_id,  
-       p.product\_type\_id,  
-       oh.sales\_channel\_enum\_id,  
-       oh.order\_date,  
-       oh.entry\_date,  
-       os.status\_id,  
-       os.status\_datetime,  
-       oh.order\_type\_id,  
-       oh.product\_store\_id  
+SELECT oh.order_id,  
+       oi.order_item_seq_id,  
+       p.product_id,  
+       p.product_type_id,  
+       oh.sales_channel_enum_id,  
+       oh.order_date,  
+       oh.entry_date,  
+       os.status_id,  
+       os.status_datetime,  
+       oh.order_type_id,  
+       oh.product_store_id  
          
-       FROM ORDER\_HEADER oh   
-       JOIN ORDER\_ITEM oi   
-       ON oh.order\_id \= oi.order\_id  
-       JOIN ORDER\_STATUS os   
-       ON oh.order\_id \= os.order\_id AND oi.order\_item\_seq\_id \= os.order\_item\_seq\_id  
+       FROM ORDER_HEADER oh   
+       JOIN ORDER_ITEM oi   
+       ON oh.order_id = oi.order_id  
+       JOIN ORDER_STATUS os   
+       ON oh.order_id = os.order_id AND oi.order_item_seq_id = os.order_item_seq_id  
        JOIN PRODUCT p   
-       ON oi.product\_id  \= p.product\_id  
+       ON oi.product_id = p.product_id  
          
-       WHERE p.is\_variant \= 'Y' AND p.is\_virtual \= 'N'  
-        AND oh.order\_type\_id \= 'SALES\_ORDER'  
-        AND os.status\_id \= 'ITEM\_COMPLETED';
-```
-;
+       WHERE p.is_variant = 'Y' AND p.is_virtual = 'N'  
+        AND oh.order_type_id = 'SALES_ORDER'  
+        AND os.status_id = 'ITEM_COMPLETED';
+
 ```
 
 
@@ -43,25 +42,26 @@ SELECT oh.order\_id,
 Customer service and finance often need insights into returned items to manage refunds, replacements, and inventory restocking
 
 ```sql
-SELECT rh.return\_id,  
-       ri.order\_id,         
-       oh.product\_store\_id,  
-       rs.status\_datetime,  
-       oh.order\_name,  
-       rh.from\_party\_id,  
-       rh.return\_date,  
-       rh.entry\_date,  
-       rh.return\_channel\_enum\_id  
+SELECT rh.return_id,  
+       ri.order_id,         
+       oh.product_store_id,  
+       rs.status_datetime,  
+       oh.order_name,  
+       rh.from_party_id,  
+       rh.return_date,  
+       rh.entry_date,  
+       rh.return_channel_enum_id  
          
-       FROM return\_header rh   
-       JOIN return\_item ri   
-       ON rh.return\_id \= ri.return\_id  
-       JOIN order\_header oh  
-       ON ri.order\_id \= oh.order\_id  
-       JOIN return\_status rs   
-       ON rh.return\_id \= rs.return\_id  
+       FROM return_header rh   
+       JOIN return_item ri   
+       ON rh.return_id = ri.return_id  
+       JOIN order_header oh  
+       ON ri.order_id = oh.order_id  
+       JOIN return_status rs   
+       ON rh.return_id = rs.return_id  
          
-       WHERE rs.status\_id \= 'RETURN\_COMPLETED';
+       WHERE rs.status_id = 'RETURN_COMPLETED';
+
 ```
 
 
@@ -74,27 +74,28 @@ SELECT rh.return\_id,
 The mechandising team needs a list of orders that only have one return.
 
 ```sql
-SELECT p.party\_id,  
-       pr.first\_name  
+SELECT p.party_id,  
+       pr.first_name  
          
        FROM party p   
        JOIN person pr   
-       ON p.party\_id \= pr.party\_id  
-       JOIN return\_header rh  
-       ON p.party\_id \= rh.from\_party\_id  
-       JOIN return\_item ri   
-       ON rh.return\_id \= ri.return\_id  
-       JOIN order\_header oh   
-       ON ri.order\_id \= oh.order\_id  
+       ON p.party_id = pr.party_id  
+       JOIN return_header rh  
+       ON p.party_id = rh.from_party_id  
+       JOIN return_item ri   
+       ON rh.return_id = ri.return_id  
+       JOIN order_header oh   
+       ON ri.order_id = oh.order_id  
          
-       WHERE oh.order\_id IN (  
-       SELECT order\_id from return\_item  
-       GROUP BY order\_id   
-       HAVING COUNT(\*) \= 1  
+       WHERE oh.order_id IN (  
+       SELECT order_id from return_item  
+       GROUP BY order_id   
+       HAVING COUNT(*) = 1  
        )  
          
-       GROUP BY p.party\_id, pr.first\_name  
-       ORDER BY pr.first\_name;
+       GROUP BY p.party_id, pr.first_name  
+       ORDER BY pr.first_name;
+
 ```
 
 
@@ -108,24 +109,25 @@ The retailer needs the total amount of items, were returned as well as how many 
 
 ```sql
 SELECT  
-    r.total\_returns,  
-    r.return\_dollar\_total,  
-    a.total\_appeasements,  
-    a.appeasement\_dollar\_total  
+    r.total_returns,  
+    r.return_dollar_total,  
+    a.total_appeasements,  
+    a.appeasement_dollar_total  
 FROM  
 (  
     SELECT  
-        COUNT(DISTINCT return\_id) AS total\_returns,  
-        SUM(amount) AS return\_dollar\_total  
-    FROM return\_item\_billing  
+        COUNT(DISTINCT return_id) AS total_returns,  
+        SUM(amount) AS return_dollar_total  
+    FROM return_item_billing  
 ) r,  
 (  
     SELECT  
-        COUNT(\*) AS total\_appeasements,  
-        SUM(amount) AS appeasement\_dollar\_total  
-    FROM return\_adjustment  
-    WHERE return\_adjustment\_type\_id \= 'APPEASEMENT'  
+        COUNT(*) AS total_appeasements,  
+        SUM(amount) AS appeasement_dollar_total  
+    FROM return_adjustment  
+    WHERE return_adjustment_type_id = 'APPEASEMENT'  
 ) a;
+
 ```
 
 ---
@@ -136,27 +138,27 @@ FROM
 Certain teams need granular return data (reason, date, refund amount) for analyzing return rates, identifying recurring issues, or updating policies.
 
 ```sql
-SELECT rh.return\_id,  
-       rh.entry\_date,  
-       ra.return\_adjustment\_type\_id,  
-       ri.return\_reason\_id,  
+SELECT rh.return_id,  
+       rh.entry_date,  
+       ra.return_adjustment_type_id,  
+       ri.return_reason_id,  
        rib.amount,  
        ra.comments,  
-       oh.order\_id,  
-       oh.order\_date,  
-       rh.entry\_date AS return\_date,  
-       oh.product\_store\_id
+       oh.order_id,  
+       oh.order_date,  
+       rh.entry_date AS return_date,  
+       oh.product_store_id
+FROM return_header rh  
+JOIN return_item ri   
+  ON rh.return_id = ri.return_id  
+JOIN return_item_billing rib  
+  ON ri.return_id = rib.return_id   
+ AND ri.return_item_seq_id = rib.return_item_seq_id  
+JOIN order_header oh   
+  ON ri.order_id = oh.order_id  
+LEFT JOIN return_adjustment ra   
+  ON rh.return_id = ra.return_id;
 
-FROM return\_header rh  
-JOIN return\_item ri   
-  ON rh.return\_id \= ri.return\_id  
-JOIN return\_item\_billing rib  
-  ON ri.return\_id \= rib.return\_id   
- AND ri.return\_item\_seq\_id \= rib.return\_item\_seq\_id  
-JOIN order\_header oh   
-  ON ri.order\_id \= oh.order\_id  
-LEFT JOIN return\_adjustment ra   
-  ON rh.return\_id \= ra.return\_id;
 ```
 
 ---
@@ -168,20 +170,21 @@ Analyzing orders with multiple returns can identify potential fraud, chronic iss
 
 ```sql
 SELECT  
-    ri.order\_id,  
-    rh.return\_id,  
-    rh.return\_date,  
-    ri.return\_reason\_id AS return\_reason,  
-    ri.return\_quantity AS return\_quantity  
-FROM return\_header rh  
-JOIN return\_item ri  
-    ON rh.return\_id \= ri.return\_id  
-WHERE ri.order\_id IN (  
-    SELECT order\_id  
-    FROM return\_item  
-    GROUP BY order\_id  
-    HAVING COUNT(DISTINCT return\_id) \> 1  
+    ri.order_id,  
+    rh.return_id,  
+    rh.return_date,  
+    ri.return_reason_id AS return_reason,  
+    ri.return_quantity AS return_quantity  
+FROM return_header rh  
+JOIN return_item ri  
+    ON rh.return_id = ri.return_id  
+WHERE ri.order_id IN (  
+    SELECT order_id  
+    FROM return_item  
+    GROUP BY order_id  
+    HAVING COUNT(DISTINCT return_id) > 1  
 );
+
 ```
 
 ---
@@ -192,21 +195,22 @@ WHERE ri.order\_id IN (
 Identify which facility (store) handled the highest volume of “one-day shipping” orders in the previous month, useful for operational benchmarking.
 
 ```sql
-SELECT f.FACILITY\_ID,  
-       f.FACILITY\_NAME,  
-       COUNT(DISTINCT oisg.order\_id) AS TOTAL\_ONE\_DAY\_SHIP\_ORDERS,  
-       DATE\_FORMAT(DATE\_SUB(CURRENT\_DATE,INTERVAL 1 MONTH),'%Y-%m') AS REPORTING\_PERIOD  
+SELECT f.FACILITY_ID,  
+       f.FACILITY_NAME,  
+       COUNT(DISTINCT oisg.order_id) AS TOTAL_ONE_DAY_SHIP_ORDERS,  
+       DATE_FORMAT(DATE_SUB(CURRENT_DATE,INTERVAL 1 MONTH),'%Y-%m') AS REPORTING_PERIOD  
          
-       FROM ORDER\_ITEM\_SHIP\_GROUP oisg  
+       FROM ORDER_ITEM_SHIP_GROUP oisg  
        JOIN FACILITY f   
-       ON oisg.FACILITY\_ID \= f.FACILITY\_ID  
-       JOIN ORDER\_HEADER oh   
-       ON oisg.ORDER\_ID \= oh.ORDER\_ID WHERE oisg.SHIPMENT\_METHOD\_TYPE\_ID \= 'NEXT\_DAY'  
-       AND oh.ORDER\_DATE \>= DATE\_FORMAT(DATE\_SUB(CURRENT\_DATE, INTERVAL 1 MONTH),'%Y-%m-01') AND oh.ORDER\_DATE \< DATE\_FORMAT(CURRENT\_DATE, '%Y-%m-01')  
-       AND oh.STATUS\_ID \= 'ORDER\_COMPLETED'  
-       GROUP by f.FACILITY\_ID, f.FACILITY\_NAME  
-       ORDER BY TOTAL\_ONE\_DAY\_SHIP\_ORDERS DESC  
+       ON oisg.FACILITY_ID = f.FACILITY_ID  
+       JOIN ORDER_HEADER oh   
+       ON oisg.ORDER_ID = oh.ORDER_ID WHERE oisg.SHIPMENT_METHOD_TYPE_ID = 'NEXT_DAY'  
+       AND oh.ORDER_DATE >= DATE_FORMAT(DATE_SUB(CURRENT_DATE, INTERVAL 1 MONTH),'%Y-%m-01') AND oh.ORDER_DATE < DATE_FORMAT(CURRENT_DATE, '%Y-%m-01')  
+       AND oh.STATUS_ID = 'ORDER_COMPLETED'  
+       GROUP by f.FACILITY_ID, f.FACILITY_NAME  
+       ORDER BY TOTAL_ONE_DAY_SHIP_ORDERS DESC  
        LIMIT 1;
+
 ```
 
 
@@ -219,22 +223,23 @@ SELECT f.FACILITY\_ID,
 Warehouse managers need a list of employees responsible for picking and packing orders to manage shifts, productivity, and training needs.
 
 ```sql
-SELECT fp.PARTY\_ID,  
-       CONCAT(p.FIRST\_NAME,' ',p.LAST\_NAME) AS NAME,  
-       fp.ROLE\_TYPE\_ID,  
-       fp.FACILITY\_ID,  
-       pty.STATUS\_ID AS STATUS  
+SELECT fp.PARTY_ID,  
+       CONCAT(p.FIRST_NAME,' ',p.LAST_NAME) AS NAME,  
+       fp.ROLE_TYPE_ID,  
+       fp.FACILITY_ID,  
+       pty.STATUS_ID AS STATUS  
          
-       FROM FACILITY\_PARTY fp  
+       FROM FACILITY_PARTY fp  
        JOIN PERSON p   
-       ON fp.PARTY\_ID \= p.PARTY\_ID  
+       ON fp.PARTY_ID = p.PARTY_ID  
        JOIN PARTY pty   
-       ON fp.PARTY\_ID \= pty.PARTY\_ID WHERE fp.ROLE\_TYPE\_ID \= '%PICKER%'  
+       ON fp.PARTY_ID = pty.PARTY_ID WHERE fp.ROLE_TYPE_ID = '%PICKER%'  
        AND (  
-       fp.THRU\_DATE IS NULL OR fp.THRU\_DATE \> CURRENT\_TIMESTAMP  
+       fp.THRU_DATE IS NULL OR fp.THRU_DATE > CURRENT_TIMESTAMP  
        )  
          
-       ORDER BY fp.FACILITY\_ID , fp.ROLE\_TYPE\_ID, NAME;
+       ORDER BY fp.FACILITY_ID , fp.ROLE_TYPE_ID, NAME;
+
 ```
 
 ---
@@ -245,19 +250,28 @@ SELECT fp.PARTY\_ID,
 Retailers want to see how many (and which) facilities (stores, warehouses, virtual sites) currently offer a product for sale.
 
 ```sql
-SELECT p.PRODUCT\_ID,  
-       p.PRODUCT\_NAME,  
-       COUNT(DISTINCT pf.FACILITY\_ID) AS FACILITY\_COUNT,  
-       GROUP\_CONCAT(  
-       DISTINCT pf.FACILITY\_ID  
-       ORDER BY pf.FACILITY\_ID SEPARATOR ', ') AS ' list of FACILITY\_IDs'  
-       FROM PRODUCT p   
-       JOIN PRODUCT\_FACILITY pf   
-       ON p.PRODUCT\_ID \= pf.PRODUCT\_ID  
-       WHERE (p.SALES\_DISCONTINUATION\_DATE IS NULL OR p.SALES\_DISCONTINUATION\_DATE \> CURRENT\_TIMESTAMP)  
-         
-       GROUP BY p.PRODUCT\_ID, p.INTERNAL\_NAME  
-       ORDER BY FACILITY\_COUNT DESC;
+SELECT   
+    ii.PRODUCT_ID,  
+    ii.FACILITY_ID,  
+    f.FACILITY_TYPE_ID,  
+    SUM(ii.QUANTITY_ON_HAND_TOTAL) AS QOH,  
+    SUM(ii.AVAILABLE_TO_PROMISE_TOTAL) AS ATP  
+    FROM   
+    INVENTORY_ITEM ii  
+    JOIN   
+    FACILITY f ON ii.FACILITY_ID = f.FACILITY_ID  
+    WHERE   
+    f.FACILITY_TYPE_ID NOT IN (  
+        SELECT FACILITY_TYPE_ID   
+        FROM FACILITY_TYPE   
+        WHERE FACILITY_TYPE_ID = 'VIRTUAL_FACILITY'   
+           OR PARENT_TYPE_ID = 'VIRTUAL_FACILITY'  
+    )  
+    GROUP BY   
+    ii.PRODUCT_ID,   
+    ii.FACILITY_ID,   
+    f.FACILITY_TYPE_ID;
+
 ```
        
 
@@ -271,26 +285,26 @@ Retailers need to study the relation of inventory levels of products to the type
 
 ```sql
 SELECT   
-    ii.PRODUCT\_ID,  
-    ii.FACILITY\_ID,  
-    f.FACILITY\_TYPE\_ID,  
-    SUM(ii.QUANTITY\_ON\_HAND\_TOTAL) AS QOH,  
-    SUM(ii.AVAILABLE\_TO\_PROMISE\_TOTAL) AS ATP  
+    ii.PRODUCT_ID,  
+    ii.FACILITY_ID,  
+    f.FACILITY_TYPE_ID,  
+    SUM(ii.QUANTITY_ON_HAND_TOTAL) AS QOH,  
+    SUM(ii.AVAILABLE_TO_PROMISE_TOTAL) AS ATP  
     FROM   
-    INVENTORY\_ITEM ii  
+    INVENTORY_ITEM ii  
     JOIN   
-    FACILITY f ON ii.FACILITY\_ID \= f.FACILITY\_ID  
+    FACILITY f ON ii.FACILITY_ID = f.FACILITY_ID  
     WHERE   
-    f.FACILITY\_TYPE\_ID NOT IN (  
-        SELECT FACILITY\_TYPE\_ID   
-        FROM FACILITY\_TYPE   
-        WHERE FACILITY\_TYPE\_ID \= 'VIRTUAL\_FACILITY'   
-           OR PARENT\_TYPE\_ID \= 'VIRTUAL\_FACILITY'  
+    f.FACILITY_TYPE_ID NOT IN (  
+        SELECT FACILITY_TYPE_ID   
+        FROM FACILITY_TYPE   
+        WHERE FACILITY_TYPE_ID = 'VIRTUAL_FACILITY'   
+           OR PARENT_TYPE_ID = 'VIRTUAL_FACILITY'  
     )  
     GROUP BY   
-    ii.PRODUCT\_ID,   
-    ii.FACILITY\_ID,   
-    f.FACILITY\_TYPE\_ID;
+    ii.PRODUCT_ID,   
+    ii.FACILITY_ID,   
+    f.FACILITY_TYPE_ID;
 ```
     
 
@@ -304,39 +318,39 @@ When transferring stock between facilities, the system should reserve inventory.
 
 ```sql
 SELECT  
-    oh.ORDER\_ID AS TRANSFER\_ORDER\_ID,  
-    oisg.FACILITY\_ID AS FROM\_FACILITY\_ID,  
-    oh.ORIGIN\_FACILITY\_ID AS TO\_FACILITY\_ID,  
-    oi.PRODUCT\_ID AS PRODUCT\_ID,  
-    oi.QUANTITY AS REQUESTED\_QUANTITY,  
-    COALESCE(SUM(oisgir.QUANTITY), 0\) AS RESERVED\_QUANTITY,  
-    oh.ORDER\_DATE AS TRANSFER\_DATE,  
-    oh.STATUS\_ID AS STATUS  
+    oh.ORDER_ID AS TRANSFER_ORDER_ID,  
+    oisg.FACILITY_ID AS FROM_FACILITY_ID,  
+    oh.ORIGIN_FACILITY_ID AS TO_FACILITY_ID,  
+    oi.PRODUCT_ID AS PRODUCT_ID,  
+    oi.QUANTITY AS REQUESTED_QUANTITY,  
+    COALESCE(SUM(oisgir.QUANTITY), 0) AS RESERVED_QUANTITY,  
+    oh.ORDER_DATE AS TRANSFER_DATE,  
+    oh.STATUS_ID AS STATUS  
 FROM  
-    ORDER\_HEADER oh  
+    ORDER_HEADER oh  
 JOIN   
-    ORDER\_ITEM oi   
-        ON oh.ORDER\_ID \= oi.ORDER\_ID  
+    ORDER_ITEM oi   
+        ON oh.ORDER_ID = oi.ORDER_ID  
 JOIN   
-    ORDER\_ITEM\_SHIP\_GROUP oisg   
-        ON oh.ORDER\_ID \= oisg.ORDER\_ID  
+    ORDER_ITEM_SHIP_GROUP oisg   
+        ON oh.ORDER_ID = oisg.ORDER_ID  
 LEFT JOIN   
-    ORDER\_ITEM\_SHIP\_GRP\_INV\_RES oisgir   
-        ON oi.ORDER\_ID \= oisgir.ORDER\_ID   
-        AND oi.ORDER\_ITEM\_SEQ\_ID \= oisgir.ORDER\_ITEM\_SEQ\_ID   
-        AND oisg.SHIP\_GROUP\_SEQ\_ID \= oisgir.SHIP\_GROUP\_SEQ\_ID  
+    ORDER_ITEM_SHIP_GRP_INV_RES oisgir   
+        ON oi.ORDER_ID = oisgir.ORDER_ID   
+        AND oi.ORDER_ITEM_SEQ_ID = oisgir.ORDER_ITEM_SEQ_ID   
+        AND oisg.SHIP_GROUP_SEQ_ID = oisgir.SHIP_GROUP_SEQ_ID  
 WHERE  
-    oh.ORDER\_TYPE\_ID \= 'TRANSFER\_ORDER' AND oh.STATUS\_ID NOT IN ('ORDER\_COMPLETED', 'ORDER\_CANCELLED', 'ORDER\_REJECTED')  
-    AND oi.STATUS\_ID \!= 'ITEM\_CANCELLED'  
+    oh.ORDER_TYPE_ID = 'TRANSFER_ORDER' AND oh.STATUS_ID NOT IN ('ORDER_COMPLETED', 'ORDER_CANCELLED', 'ORDER_REJECTED')  
+    AND oi.STATUS_ID != 'ITEM_CANCELLED'  
 GROUP BY  
-    oh.ORDER\_ID,  
-    oisg.FACILITY\_ID,  
-    oh.ORIGIN\_FACILITY\_ID,  
-    oi.PRODUCT\_ID,  
+    oh.ORDER_ID,  
+    oisg.FACILITY_ID,  
+    oh.ORIGIN_FACILITY_ID,  
+    oi.PRODUCT_ID,  
     oi.QUANTITY,  
-    oh.ORDER\_DATE,  
-    oh.STATUS\_ID  
-HAVING COALESCE(SUM(oisgir.QUANTITY), 0\) \< oi.QUANTITY;
+    oh.ORDER_DATE,  
+    oh.STATUS_ID  
+HAVING COALESCE(SUM(oisgir.QUANTITY), 0) < oi.QUANTITY;
 ```
 
 ---
@@ -348,28 +362,28 @@ A picklist is necessary for warehouse staff to gather items. Orders missing a pi
 
 ```sql
 SELECT  
-    oh.ORDER\_ID AS ORDER\_ID,  
-    oh.ORDER\_DATE AS ORDER\_DATE,  
-    oh.STATUS\_ID AS ORDER\_STATUS,  
-    oisg.FACILITY\_ID AS FACILITY\_ID,  
-    TIMESTAMPDIFF(HOUR, oh.ORDER\_DATE, CURRENT\_TIMESTAMP) AS DURATION\_IN\_HOURS  
+    oh.ORDER_ID AS ORDER_ID,  
+    oh.ORDER_DATE AS ORDER_DATE,  
+    oh.STATUS_ID AS ORDER_STATUS,  
+    oisg.FACILITY_ID AS FACILITY_ID,  
+    TIMESTAMPDIFF(HOUR, oh.ORDER_DATE, CURRENT_TIMESTAMP) AS DURATION_IN_HOURS  
 FROM  
-    ORDER\_HEADER oh  
+    ORDER_HEADER oh  
 JOIN   
-    ORDER\_ITEM\_SHIP\_GROUP oisg   
-        ON oh.ORDER\_ID \= oisg.ORDER\_ID  
+    ORDER_ITEM_SHIP_GROUP oisg   
+        ON oh.ORDER_ID = oisg.ORDER_ID  
 LEFT JOIN   
-    PICKLIST\_ITEM pli   
-        ON oh.ORDER\_ID \= pli.ORDER\_ID   
-        AND oisg.SHIP\_GROUP\_SEQ\_ID \= pli.SHIP\_GROUP\_SEQ\_ID  
+    PICKLIST_ITEM pli   
+        ON oh.ORDER_ID = pli.ORDER_ID   
+        AND oisg.SHIP_GROUP_SEQ_ID = pli.SHIP_GROUP_SEQ_ID  
 WHERE  
-    oh.ORDER\_TYPE\_ID \= 'SALES\_ORDER'  
-    AND oh.STATUS\_ID \= 'ORDER\_APPROVED'   
-    AND oisg.FACILITY\_ID IS NOT NULL  
-    AND pli.PICKLIST\_BIN\_ID IS NULL  
+    oh.ORDER_TYPE_ID = 'SALES_ORDER'  
+    AND oh.STATUS_ID = 'ORDER_APPROVED'   
+    AND oisg.FACILITY_ID IS NOT NULL  
+    AND pli.PICKLIST_BIN_ID IS NULL  
 GROUP BY  
-    oh.ORDER\_ID,  
-    oh.ORDER\_DATE,  
-    oh.STATUS\_ID,  
-    oisg.FACILITY\_ID;
+    oh.ORDER_ID,  
+    oh.ORDER_DATE,  
+    oh.STATUS_ID,  
+    oisg.FACILITY_ID;
 ```
