@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+    <entity entity-name="ProductDemo" table-name="PRODUCT_DEMO" package="assignment.demo">
+        <field name="productId" type="text-medium" is-pk="true"/>
+        <field name="productTypeId" type="text-medium"/>
+        <field name="primaryProductCategoryId" type="text-medium"/>
+        <field name="facilityId" type="text-medium"/>
+        <field name="introductionDate" type="date-time"/>
+        <field name="releaseDate" type="date-time"/>
+        <field name="supportDiscontinuationDate" type="date-time"/>
+        <field name="salesDiscontinuationDate" type="date-time"/>
+        <field name="salesDiscWhenNotAvail" type="text-medium"/>
+        <field name="internalName" type="text-medium"/>
+        <field name="brandName" type="text-medium"/>
+        <field name="comments" type="text-medium"/>
+        <field name="productName" type="text-medium"/>
+        <field name="description" type="text-medium"/>
+        <field name="longDescription" type="text-medium"/>
+        <field name="priceDetailText" type="text-medium"/>
+        <field name="smallImageUrl" type="text-medium"/>
+        <field name="mediumImageUrl" type="text-medium"/>
+        <field name="largeImageUrl" type="text-medium"/>
+        <field name="detailImageUrl" type="text-medium"/>
+        <field name="originalImageUrl" type="text-medium"/>
+        <field name="detailScreen" type="text-medium"/>
+        <field name="inventoryMessage" type="text-medium"/>
+        <field name="inventoryItemTypeId" type="text-medium"/>
+        <field name="requireInventory" type="text-medium"/>
+        <field name="quantityUomId" type="text-medium"/>
+        <field name="quantityIncluded" type="number-decimal"/>
+        <field name="piecesIncluded" type="number-decimal"/>
+        <field name="requireAmount" type="text-medium"/>
+        <field name="fixedAmount" type="number-decimal"/>
+        <field name="amountUomTypeId" type="text-medium"/>
+        <field name="weightUomId" type="text-medium"/>
+        <field name="shippingWeight" type="number-decimal"/>
+        <field name="productWeight" type="number-decimal"/>
+        <field name="heightUomId" type="text-medium"/>
+        <field name="productHeight" type="number-decimal"/>
+        <field name="shippingHeight" type="number-decimal"/>
+        <field name="widthUomId" type="text-medium"/>
+        <field name="productWidth" type="number-decimal"/>
+        <field name="shippingWidth" type="number-decimal"/>
+        <field name="depthUomId" type="text-medium"/>
+        <field name="productDepth" type="number-decimal"/>
+        <field name="shippingDepth" type="number-decimal"/>
+        <field name="diameterUomId" type="text-medium"/>
+        <field name="productDiameter" type="number-decimal"/>
+        <field name="productRating" type="number-decimal"/>
+        <field name="ratingTypeEnum" type="text-medium"/>
+        <field name="returnable" type="text-medium"/>
+        <field name="taxable" type="text-medium"/>
+        <field name="chargeShipping" type="text-medium"/>
+        <field name="autoCreateKeywords" type="text-medium"/>
+        <field name="includeInPromotions" type="text-medium"/>
+        <field name="isVirtual" type="text-medium"/>
+        <field name="isVariant" type="text-medium"/>
+        <field name="virtualVariantMethodEnum" type="text-medium"/>
+        <field name="originGeoId" type="text-medium"/>
+        <field name="requirementMethodEnumId" type="text-medium"/>
+        <field name="billOfMaterialLevel" type="number-decimal"/>
+        <field name="reservMaxPersons" type="number-decimal"/>
+        <field name="reserv2ndPPPerc" type="number-decimal"/>
+        <field name="reservNthPPPerc" type="number-decimal"/>
+        <field name="configId" type="text-medium"/>
+        <field name="createdDate" type="date-time"/>
+        <field name="createdByUserLogin" type="text-medium"/>
+        <field name="lastModifiedDate" type="date-time"/>
+        <field name="lastModifiedByUserLogin" type="text-medium"/>
+        <field name="inShippingBox" type="text-medium"/>
+        <field name="defaultShipmentBoxTypeId" type="text-medium"/>
+        <field name="lotIdFilledIn" type="text-medium"/>
+        <field name="orderDecimalQuantity" type="text-medium"/>
+        <field name="lastUpdatedStamp" type="date-time"/>
+        <field name="lastUpdatedTxStamp" type="date-time"/>
+        <field name="createdStamp" type="date-time"/>
+        <field name="createdTxStamp" type="date-time"/>
+        <field name="productUrlName" type="text-medium"/>
+        <field name="xSmallImageUrl" type="text-medium"/>
+        <field name="thumbnailImageUrl" type="text-medium"/>
+        <field name="alwaysNewLineItem" type="text-medium"/>
+        <field name="isInstallationProduct" type="text-medium"/>
+        <field name="requireInspection" type="text-medium"/>
+        <field name="lastIndexedDateTime" type="date-time"/>
+        <field name="primaryProductStoreId" type="text-medium"/>
+    </entity>
+
+    <entity entity-name="GoodIdentification" table-name="GOOD_IDENTIFICATION" package="assignment.demo">
+        <field name="goodIdentificationTypeId" type="text-medium" is-pk="true"/>
+        <field name="productId" type="text-medium" is-pk="true"/>
+        <field name="idValue" type="text-medium"/>
+        <field name="fromDate" type="date-time"/>
+        <field name="thruDate" type="date-time"/>
+        <field name="lastUpdatedStamp" type="date-time"/>
+        <field name="lastUpdatedTxStamp" type="date-time"/>
+        <field name="createdStamp" type="date-time"/>
+        <field name="createdTxStamp" type="date-time"/>
+    </entity>
+</entities>

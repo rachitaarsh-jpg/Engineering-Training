@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Assignment 1 Services — SQL Rendering Assignment
+    Each service corresponds to one query from SQL Assignment 1.
+    Rule: uses ec.entity.find() only — no raw sqlFind().
+-->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <!--
+        =====================================================================
+        A1Q01 - New Customers Acquired in a Date Range
+        =====================================================================
+        Business Problem:
+          The marketing team ran a campaign and wants to see which individual
+          (Person) parties that hold the role "Customer" were first created
+          within a given date window.  For each customer we need:
+            partyId, firstName, lastName, entryDate (CREATED_DATE on Party),
+            email (INFO_STRING on ContactMech of type CmtEmailAddress),
+            phone (CONTACT_NUMBER on TelecomNumber).
+
+        Design Decision — why the approach below:
+          The query joins Party → PartyRole → Person and then LEFT-joins two
+          contact-mechanism paths.  The Moqui entity engine cannot express two
+          INDEPENDENT left-joins back to the same base table inside a single
+          ec.entity.find() call (that would require a custom view-entity with
+          two aliased member-entities for PartyContactMech/ContactMech).
+
+          Instead the service uses the RECOMMENDED pattern for multi-path
+          contact info: fetch the base rows first, then do secondary lookups
+          per party in a loop.  This keeps each find() simple while still
+          going through the entity engine.
+
+          NOTE for Part 4: to intercept the SQL *before* execution, the
+          service calls renderSqlBeforeExecution() which manually constructs
+          an EntityFindBuilder the same way EntityFindImpl does, but stops
+          before makeConnection() / makePreparedStatement() / executeQuery().
+          See the Groovy inline block for details.
+        =====================================================================
+    -->
+    <service verb="get" noun="A1Q01NewCustomers" type="script"
+             transaction="ignore" location="component://party/script/assignment/GetA1Q01NewCustomers.groovy">
+        <description>
+            Return all Person-type parties with role Customer created in the
+            given date range, with email and phone.  Implements SQL Assignment 1
+            Query 1 via the entity engine (no raw SQL).
+        </description>
+        <in-parameters>
+            <!-- Use Timestamp type so entity engine handles JDBC binding correctly -->
+            <parameter name="fromDate" type="Timestamp" required="true">
+                <description>Inclusive start of the creation-date window (e.g. 2025-06-01 00:00:00)</description>
+            </parameter>
+            <parameter name="thruDate" type="Timestamp" required="true">
+                <description>Exclusive end of the creation-date window (e.g. 2026-07-01 00:00:00)</description>
+            </parameter>
+            <parameter name="renderSqlOnly" type="Boolean" default-value="false">
+                <description>
+                    When true the service renders the SQL string BEFORE any DB
+                    execution and returns it as renderedSql.  No rows are fetched.
+                    This satisfies Part 4 of the assignment.
+                </description>
+            </parameter>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="customerList" type="List">
+                <description>
+                    List of Maps, one per customer.  Each map has:
+                    partyId, firstName, lastName, entryDate, email, phone.
+                </description>
+            </parameter>
+            <parameter name="renderedSql"  type="String">
+                <description>
+                    The raw SQL string the entity engine would execute, captured
+                    BEFORE execution.  Populated only when renderSqlOnly=true.
+                </description>
+            </parameter>
+            <parameter name="renderedParams" type="List">
+                <description>The ordered ? parameter values matching renderedSql.</description>
+            </parameter>
+        </out-parameters>
+    </service>
+
+
+    <!--
+        =====================================================================
+        A1Q02 - 2 List All Active Physical Products
+        Business Problem:
+        Merchandising teams often need a list of all physical products
+        to manage logistics, warehousing, and shipping.
+        Fields to Retrieve:
+                            PRODUCT_ID
+                            PRODUCT_TYPE_ID
+                            INTERNAL_NAME
+        =====================================================================
+        -->
+
+        <service verb="get" noun="A1Q02ActivePhysicalProds" transaction="ignore"
+                 type="script" location="component://party/script/assignment/GetA1Q02ActivePhysicalProds.groovy">
+            <description>
+                Returns a list of all active physical products.
+            </description>
+            <in-parameters>
+                <parameter name="renderSqlOnly" type="Boolean" default-value="false"/>
+            </in-parameters>
+            <out-parameters>
+                <parameter name="productList" type="List"/>
+                <parameter name="renderedSql" type="String"/>
+            </out-parameters>
+        </service>
+
+
+    <!-- =====================================================================
+     A1Q03 - Products Missing NetSuite ID
+    Business Problem:
+    A product cannot sync to NetSuite unless it has a valid NetSuite ID. The OMS needs a list of all products that still need to be created or updated in NetSuite.
+
+    Fields to Retrieve:
+
+    PRODUCT_ID
+    INTERNAL_NAME
+    PRODUCT_TYPE_ID
+    NETSUITE_ID (or similar field indicating the NetSuite ID; may be NULL or empty if missing)
+    =====================================================================
+    -->
+
+    <service verb="get" noun="A1Q03ProdMissingNetSuSite" transaction="ignore"
+             type="script" location="component://party/script/assignment/GetA1Q03ProdMissingNetSuite.groovy">
+        <description>
+            Returns a list of all active products where NetSuite ID is NULL/missing.
+        </description>
+        <in-parameters>
+            <parameter name="renderSqlOnly" type="Boolean" default-value="false"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="productList" type="List"/>
+            <parameter name="renderedSql" type="String"/>
+        </out-parameters>
+    </service>
+
+    <!-- =====================================================================
+     A1Q04 - Product IDs Across Systems
+        Business Problem:
+        To sync an order or product across multiple systems
+        (e.g., Shopify, HotWax, ERP/NetSuite), the OMS needs to know each system’s
+        unique identifier for that product. This query retrieves the Shopify ID,
+        HotWax ID, and ERP ID (NetSuite ID) for all products.
+
+        Fields to Retrieve:
+
+        PRODUCT_ID (internal OMS ID)
+        SHOPIFY_ID
+        HOTWAX_ID
+        ERP_ID or NETSUITE_ID (depending on naming)
+    =====================================================================
+    -->
+    <service verb="get" noun="A1Q04ProdsAcrossSystem" transaction="ignore"
+             type="script" location="component://party/script/assignment/GetA1Q04ProdsAcrossSystem.groovy">
+        <description>
+            Returns a list of products with their productId,shopifyId,hotwaxId
+            and netSuiteID respectively
+        </description>
+        <in-parameters>
+            <parameter name="renderSqlOnly" type="Boolean" default-value="false"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="productList" type="List"/>
+            <parameter name="renderedSql" type="String"/>
+        </out-parameters>
+    </service>
+</services>

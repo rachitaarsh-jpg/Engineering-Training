@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entities xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/entity-definition-3.xsd">
+
+    <view-entity entity-name="AssignmentCustomerView" package="assignment.party">
+        <description>
+            A reusable View-Entity for Assignment 1 Q1.
+            This automatically joins Party, Person, and PartyRole natively in the database, 
+            so you don't have to write a loop in Groovy to get the name and role!
+        </description>
+
+        <!-- 1. Define the tables we are joining (The FROM and JOIN clauses) -->
+        <member-entity entity-alias="PTY" entity-name="mantle.party.Party"/>
+        
+        <!-- INNER JOIN Person ON Party.partyId = Person.partyId -->
+        <member-entity entity-alias="PER" entity-name="mantle.party.Person" join-from-alias="PTY">
+            <key-map field-name="partyId"/>
+        </member-entity>
+        
+        <!-- INNER JOIN PartyRole ON Party.partyId = PartyRole.partyId -->
+        <member-entity entity-alias="PRL" entity-name="mantle.party.PartyRole" join-from-alias="PTY">
+            <key-map field-name="partyId"/>
+        </member-entity>
+
+        <!-- 2. Define the fields we want to expose (The SELECT clause) -->
+        <!-- From Party -->
+        <alias entity-alias="PTY" name="partyId"/>
+        <alias entity-alias="PTY" name="lastUpdatedStamp" description="This is the date we filter on"/>
+        
+        <!-- From Person -->
+        <alias entity-alias="PER" name="firstName"/>
+        <alias entity-alias="PER" name="lastName"/>
+        
+        <!-- From PartyRole -->
+        <alias entity-alias="PRL" name="roleTypeId"/>
+    </view-entity>
+
+    <!-- JOINS Product and GoodIdentification entities -->
+    <view-entity entity-name="ProductWithGoodView" package="assignment.party">
+        <member-entity entity-alias="PRD" entity-name="assignment.demo.ProductDemo"/>
+        <member-entity entity-alias="GOIDF" entity-name="assignment.demo.GoodIdentification" join-from-alias="PRD">
+            <key-map field-name="productId"/>
+        </member-entity>
+
+        <alias entity-alias="PRD" name="productId"/>
+        <alias entity-alias="PRD" name="internalName"/>
+        <alias entity-alias="PRD" name="productTypeId"/>
+        <alias entity-alias="PRD" name="isVirtual"/>
+        <alias entity-alias="GOIDF" name="idValue"/>
+        <alias entity-alias="GOIDF" name="goodIdentificationTypeId"/>
+    </view-entity>
+
+    <view-entity entity-name="ProductWithGoodView" package="assignment.demo">
+        <member-entity entity-alias="PROD" entity-name="assignment.demo.ProductDemo"/>
+        
+        <!-- LEFT JOIN (join-optional="true") on GoodIdentificationDemo -->
+        <member-entity entity-alias="GI" entity-name="assignment.demo.GoodIdentification" join-from-alias="PROD" join-optional="true">
+            <key-map field-name="productId"/>
+            <entity-condition>
+                <!-- This handles the: AND gi.good_identification_type_id = 'ERP_ID' part of the join -->
+                <econdition entity-alias="GI" field-name="goodIdentificationTypeId" value="ERP_ID"/>
+            </entity-condition>
+        </member-entity>
+
+        <!-- Selected Columns -->
+        <alias entity-alias="PROD" name="productId"/>
+        <alias entity-alias="PROD" name="internalName"/>
+        <alias entity-alias="PROD" name="productTypeId"/>
+        <!-- We map idValue to netsuiteId for clarity -->
+        <alias entity-alias="GI" name="netsuiteId" field="idValue"/>
+    </view-entity>
+
+</entities>
